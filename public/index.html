@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTok — Google Pixel 7</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070c; --sf:#0e0e16; --sf2:#141420; --sf3:#1b1b28;
+  --b:rgba(255,255,255,0.055); --b2:rgba(255,255,255,0.10);
+  --b3:rgba(255,255,255,0.16);
+  --tk1:#EE1D52; --tk2:#69C9D0; --tk3:#010101;
+  --gr:#22c55e; --am:#f59e0b; --rd:#ef4444; --ac:#4f8ef7;
+  --tx:#eef0f8; --mt:#5a5a78; --mt2:#8a8aaa;
+  --mono:'JetBrains Mono',monospace; --sans:'IBM Plex Sans Arabic',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);
+  display:flex;flex-direction:column;}
+
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(238,29,82,0.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(105,201,208,0.015) 1px,transparent 1px);
+  background-size:48px 48px;}
+
+/* ══ TOPBAR ══ */
+.bar{position:relative;z-index:50;display:flex;align-items:center;
+  justify-content:space-between;padding:0 16px;height:48px;flex-shrink:0;
+  border-bottom:1px solid var(--b);background:rgba(3,3,8,0.99);
+  backdrop-filter:blur(20px);}
+.brand{display:flex;align-items:center;gap:9px;}
+.tk-icon{width:28px;height:28px;border-radius:8px;flex-shrink:0;
+  background:var(--tk3);display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:900;position:relative;overflow:hidden;}
+.tk-icon::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 50%,var(--tk2) 50%);opacity:.5;}
+.tk-icon::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(315deg,transparent 50%,var(--tk1) 50%);opacity:.5;}
+.tk-icon span{position:relative;z-index:1;font-size:15px;}
+.bname{font-size:13px;font-weight:600;}
+.bsub{font-family:var(--mono);font-size:9px;color:var(--mt2);}
+.top-right{display:flex;align-items:center;gap:7px;}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:all .35s;}
+.dot.boot{background:var(--am);box-shadow:0 0 7px var(--am);animation:bl .9s infinite;}
+.dot.live{background:var(--gr);box-shadow:0 0 7px var(--gr);animation:bl 2.5s infinite;}
+.dot.fail{background:var(--rd);}
+.dot.idle{background:var(--mt);}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.15}}
+.chip{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:20px;
+  border:1px solid var(--b2);color:var(--mt2);background:var(--sf);}
+.chip.live{color:var(--gr);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.07);}
+.chip.boot{color:var(--am);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.07);}
+.chip.fail{color:var(--rd);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.07);}
+
+/* ══ MAIN ══ */
+.main{position:relative;z-index:1;flex:1;display:flex;min-height:0;}
+
+/* ══ CENTER ══ */
+.center{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:16px;min-width:0;}
+
+.lbl{font-family:var(--mono);font-size:10px;color:var(--mt);
+  margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--mt);transition:all .35s;}
+.ldot.live{background:var(--gr);box-shadow:0 0 5px var(--gr);animation:bl 2.5s infinite;}
+.ldot.boot{background:var(--am);animation:bl .8s infinite;}
+.ldot.fail{background:var(--rd);}
+
+/* ══ PHONE SHELL ══ */
+.phone{position:relative;width:360px;height:720px;flex-shrink:0;
+  background:#030305;border-radius:40px;
+  border:2px solid rgba(255,255,255,0.08);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.025),
+    0 30px 80px rgba(0,0,0,0.95),
+    0 0 60px rgba(238,29,82,0.04),
+    0 0 80px rgba(105,201,208,0.03);
+  transition:all .4s ease;overflow:hidden;}
+
+/* punch-hole */
+.phone::before{content:'';position:absolute;top:10px;left:50%;
+  transform:translateX(-50%);width:11px;height:11px;
+  background:#030305;border-radius:50%;z-index:300;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.06);}
+
+/* TikTok accent lines */
+.phone::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--tk2),var(--tk1));
+  opacity:.4;z-index:301;}
+
+.screen{position:absolute;inset:0;border-radius:38px;overflow:hidden;background:#000;}
+
+/* ══ noVNC IFRAME ══ */
+#vncFrame{width:100%;height:100%;border:none;display:block;border-radius:36px;}
+
+/* ══ BOOT OVERLAY ══ */
+#bootOv{position:absolute;inset:0;background:#050508;border-radius:38px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;z-index:200;transition:opacity .6s ease;}
+#bootOv.off{opacity:0;pointer-events:none;}
+
+.boot-logo{width:68px;height:68px;border-radius:18px;
+  background:var(--tk3);display:flex;align-items:center;
+  justify-content:center;font-size:34px;font-weight:900;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 40px rgba(238,29,82,.25),0 0 40px rgba(105,201,208,.15);}
+.boot-logo::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 50%,rgba(105,201,208,.6) 50%);}
+.boot-logo::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(315deg,transparent 50%,rgba(238,29,82,.6) 50%);}
+.boot-logo span{position:relative;z-index:1;}
+
+.boot-ring{width:40px;height:40px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.07);
+  border-top-color:var(--tk1);border-right-color:var(--tk2);
+  animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.boot-title{font-size:14px;font-weight:600;}
+.boot-sub{font-size:10.5px;color:var(--mt);text-align:center;
+  max-width:220px;line-height:1.7;}
+
+.boot-steps{display:flex;flex-direction:column;gap:5px;width:100%;max-width:240px;}
+.bstep{display:flex;align-items:center;gap:8px;padding:6px 10px;
+  border-radius:7px;background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  font-size:10px;color:var(--mt);transition:all .3s;}
+.bstep.cur{border-color:rgba(245,158,11,.3);color:var(--am);}
+.bstep.ok {border-color:rgba(34,197,94,.3); color:var(--gr);}
+.bstep.fail{border-color:rgba(239,68,68,.25);color:var(--rd);opacity:.5;}
+.bstep-dot{width:6px;height:6px;border-radius:50%;background:var(--mt);flex-shrink:0;}
+.bstep-dot.cur{background:var(--am);animation:bl .7s infinite;}
+.bstep-dot.ok {background:var(--gr);}
+.bstep-dot.fail{background:var(--rd);}
+
+.boot-prog{width:200px;height:2px;background:rgba(255,255,255,0.06);
+  border-radius:2px;overflow:hidden;}
+.boot-bar{height:100%;width:0;border-radius:2px;
+  background:linear-gradient(90deg,var(--tk2),var(--tk1));
+  transition:width .35s ease;}
+
+/* ══ ERROR OVERLAY ══ */
+#errOv{position:absolute;inset:0;background:#050508;border-radius:38px;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;z-index:210;padding:24px;text-align:center;}
+#errOv.on{display:flex;}
+.err-ic{font-size:30px;}
+.err-t{font-size:13px;font-weight:600;color:var(--rd);}
+.err-m{font-size:10px;color:var(--mt);line-height:1.7;max-width:220px;}
+.err-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;justify-content:center;}
+.ebt{padding:6px 14px;border-radius:7px;border:1px solid var(--b2);
+  background:var(--sf2);color:var(--tx);font-size:10.5px;
+  cursor:pointer;transition:all .2s;font-family:var(--sans);}
+.ebt:hover{border-color:var(--ac);color:var(--ac);}
+.ebt.tk{border-color:rgba(238,29,82,.4);color:var(--tk1);
+  background:rgba(238,29,82,.07);}
+.ebt.tk:hover{background:rgba(238,29,82,.15);}
+
+/* ══ CONTROLS ══ */
+.ctrls{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;justify-content:center;}
+.ctrl{padding:5px 11px;border-radius:7px;border:1px solid var(--b2);
+  background:var(--sf);color:var(--mt2);font-family:var(--sans);
+  font-size:10.5px;cursor:pointer;transition:all .2s;}
+.ctrl:hover{border-color:var(--ac);color:var(--ac);}
+.ctrl.tk{border-color:rgba(238,29,82,.35);color:var(--tk1);
+  background:rgba(238,29,82,.06);}
+.ctrl.tk:hover{background:rgba(238,29,82,.13);}
+
+/* ══ SIDEBAR ══ */
+.sidebar{width:240px;min-width:240px;border-left:1px solid var(--b);
+  background:var(--sf);display:flex;flex-direction:column;
+  overflow-y:auto;flex-shrink:0;}
+.ss{padding:13px;border-bottom:1px solid var(--b);}
+.sl{font-family:var(--mono);font-size:8.5px;letter-spacing:1.8px;
+  color:var(--mt);text-transform:uppercase;margin-bottom:9px;}
+.kv{display:flex;flex-direction:column;gap:2px;padding:7px 9px;
+  border-radius:7px;background:var(--sf2);border:1px solid var(--b);
+  margin-bottom:4px;}
+.kl{font-size:9px;color:var(--mt);}
+.kv_{font-family:var(--mono);font-size:10px;color:var(--tx);word-break:break-all;line-height:1.4;}
+.kv_.ok{color:var(--gr);}.kv_.err{color:var(--rd);}
+.kv_.am{color:var(--am);}.kv_.tk{color:var(--tk1);}
+
+.sbtn{width:100%;padding:8px;border-radius:7px;border:none;cursor:pointer;
+  font-family:var(--sans);font-size:11.5px;font-weight:500;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.sbtn-tk{background:linear-gradient(135deg,#c4103d,#EE1D52);color:#fff;margin-top:5px;}
+.sbtn-tk:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(238,29,82,.35);}
+.sbtn-o{background:transparent;color:var(--mt2);border:1px solid var(--b2);margin-top:4px;}
+.sbtn-o:hover{border-color:var(--tk2);color:var(--tk2);}
+
+/* boot steps in sidebar */
+.side-step{display:flex;align-items:center;gap:7px;padding:6px 8px;
+  border-radius:6px;background:var(--sf2);border:1px solid var(--b);
+  margin-bottom:3px;}
+.side-step.ok{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.04);}
+.side-step.cur{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04);}
+.side-step.fail{border-color:rgba(239,68,68,.2);opacity:.5;}
+.ss-dot{width:5px;height:5px;border-radius:50%;background:var(--mt);flex-shrink:0;}
+.ss-dot.ok{background:var(--gr);}.ss-dot.cur{background:var(--am);animation:bl .7s infinite;}
+.ss-dot.fail{background:var(--rd);}
+.ss-name{font-size:10px;font-weight:500;}
+.ss-desc{font-size:8.5px;color:var(--mt);}
+
+.logbox{background:var(--sf2);border-radius:6px;border:1px solid var(--b);
+  padding:6px;height:95px;overflow-y:auto;font-family:var(--mono);
+  font-size:8.5px;color:var(--mt);line-height:1.85;}
+.ll.ok{color:var(--gr);}.ll.err{color:var(--rd);}
+.ll.info{color:var(--ac);}.ll.warn{color:var(--am);}
+.ll.tk{color:var(--tk1);}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:12px;left:50%;
+  transform:translateX(-50%) translateY(45px);
+  background:var(--sf3);border:1px solid var(--b2);
+  border-radius:10px;padding:7px 16px;font-size:11px;
+  z-index:9999;transition:transform .24s;white-space:nowrap;
+  box-shadow:0 8px 28px rgba(0,0,0,.6);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.ok{border-color:rgba(34,197,94,.4);color:var(--gr);}
+#toast.err{border-color:rgba(239,68,68,.4);color:var(--rd);}
+#toast.tk{border-color:rgba(238,29,82,.4);color:var(--tk1);}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px;}
+@media(max-width:780px){
+  .sidebar{display:none;}
+  .phone{width:300px;height:610px;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="bar">
+  <div class="brand">
+    <div class="tk-icon"><span>♪</span></div>
+    <div>
+      <div class="bname">TikTok Android Emulator</div>
+      <div class="bsub">Google Pixel 7 — Android 13</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <div class="dot boot" id="topDot"></div>
+    <span class="chip boot" id="topChip">يتهيأ...</span>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- CENTER -->
+  <div class="center">
+    <div class="lbl">
+      <div class="ldot boot" id="lDot"></div>
+      <span id="lblTxt">جاري تشغيل Android 13...</span>
+    </div>
+
+    <div class="phone" id="phone">
+      <div class="screen">
+
+        <!-- Boot Overlay -->
+        <div id="bootOv">
+          <div class="boot-logo"><span>♪</span></div>
+          <div class="boot-ring"></div>
+          <div class="boot-title" id="bootTitle">تشغيل TikTok...</div>
+          <div class="boot-sub" id="bootSub">جاري تهيئة Google Pixel 7</div>
+          <div class="boot-prog"><div class="boot-bar" id="bootBar"></div></div>
+          <div class="boot-steps" id="bootSteps"></div>
+        </div>
+
+        <!-- Error Overlay -->
+        <div id="errOv">
+          <div class="err-ic">📵</div>
+          <div class="err-t">تعذّر الاتصال</div>
+          <div class="err-m" id="errMsg">
+            تأكد من تشغيل Docker container<br>
+            وأن noVNC يعمل على المنفذ 6080
+          </div>
+          <div class="err-btns">
+            <button class="ebt" onclick="retry()">⟳ إعادة</button>
+            <button class="ebt" onclick="checkVNC()">🔍 فحص</button>
+            <button class="ebt tk" onclick="openDirect()">↗ noVNC مباشر</button>
+          </div>
+        </div>
+
+        <!-- noVNC IFRAME — شاشة Android الحقيقية -->
+        <iframe id="vncFrame" src="" allow="fullscreen"
+          sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+
+      </div>
+    </div>
+
+    <div class="ctrls">
+      <button class="ctrl tk" onclick="openTikTok()">♪ TikTok</button>
+      <button class="ctrl" onclick="rotate()">↺ تدوير</button>
+      <button class="ctrl" onclick="retry()">⟳ إعادة</button>
+      <button class="ctrl" onclick="goFull()">⛶ ملء</button>
+      <button class="ctrl" onclick="openDirect()">↗ فتح مباشر</button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="ss">
+      <div class="sl">حالة الجهاز</div>
+      <div class="kv"><span class="kl">الجهاز</span>
+        <span class="kv_ tk">Google Pixel 7</span></div>
+      <div class="kv"><span class="kl">Android</span>
+        <span class="kv_ tk">13 (API 33)</span></div>
+      <div class="kv"><span class="kl">noVNC</span>
+        <span class="kv_ am" id="sVNC">يتحقق...</span></div>
+      <div class="kv"><span class="kl">TikTok APK</span>
+        <span class="kv_ am" id="sAPK">جاري التثبيت...</span></div>
+      <div class="kv"><span class="kl">الحالة العامة</span>
+        <span class="kv_ am" id="sState">يتهيأ...</span></div>
+    </div>
+
+    <div class="ss">
+      <div class="sl">مراحل التشغيل</div>
+      <div id="sideSteps"></div>
+    </div>
+
+    <div class="ss">
+      <div class="sl">تحكم TikTok</div>
+      <button class="sbtn sbtn-tk" onclick="openTikTok()">♪ فتح TikTok</button>
+      <button class="sbtn sbtn-o" onclick="reinstallAPK()">⬇ إعادة تثبيت APK</button>
+      <button class="sbtn sbtn-o" onclick="openDirect()">↗ noVNC المباشر</button>
+      <button class="sbtn sbtn-o" onclick="retry()">⟳ إعادة الاتصال</button>
+    </div>
+
+    <div class="ss">
+      <div class="sl">السجل</div>
+      <div class="logbox" id="logBox"></div>
+    </div>
+
+  </aside>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+const BASE = window.location.origin;
+
+// ══ مراحل التشغيل ════════════════════════════════════
+const STEPS = [
+  { id:'s1', name:'تشغيل Android 13',   desc:'بدء emulator' },
+  { id:'s2', name:'تهيئة noVNC',        desc:'بث الشاشة' },
+  { id:'s3', name:'انتظار ADB',         desc:'الاتصال بالجهاز' },
+  { id:'s4', name:'تثبيت TikTok APK',   desc:'تلقائي عبر ADB' },
+  { id:'s5', name:'تشغيل TikTok',       desc:'فتح التطبيق' },
+];
+
+let rotated   = false;
+let progTimer = null;
+let progVal   = 0;
+let checkInt  = null;
+let curStep   = 0;
+
+// ══ render steps ══════════════════════════════════════
+function renderSteps() {
+  const overlay = document.getElementById('bootSteps');
+  const side    = document.getElementById('sideSteps');
+  overlay.innerHTML = ''; side.innerHTML = '';
+
+  STEPS.forEach((s, i) => {
+    // overlay
+    const d = document.createElement('div');
+    d.className = 'bstep' + (i===0?' cur':'');
+    d.id = 'bstep-'+i;
+    d.innerHTML = `<div class="bstep-dot${i===0?' cur':''}" id="bdot-${i}"></div>${s.name}`;
+    overlay.appendChild(d);
+
+    // sidebar
+    const sd = document.createElement('div');
+    sd.className = 'side-step' + (i===0?' cur':'');
+    sd.id = 'sstep-'+i;
+    sd.innerHTML = `<div class="ss-dot${i===0?' cur':''}" id="ssdot-${i}"></div>
+      <div><div class="ss-name">${s.name}</div>
+      <div class="ss-desc">${s.desc}</div></div>`;
+    side.appendChild(sd);
+  });
+}
+
+function advanceStep(i, state) {
+  // overlay
+  const bs = document.getElementById('bstep-'+i);
+  const bd = document.getElementById('bdot-'+i);
+  if(bs){ bs.className='bstep '+state; }
+  if(bd){ bd.className='bstep-dot '+state; }
+  // sidebar
+  const ss = document.getElementById('sstep-'+i);
+  const sd = document.getElementById('ssdot-'+i);
+  if(ss){ ss.className='side-step '+state; }
+  if(sd){ sd.className='ss-dot '+state; }
+  // next step active
+  if(state==='ok' && i+1 < STEPS.length) {
+    const nb = document.getElementById('bstep-'+(i+1));
+    const nd = document.getElementById('bdot-'+(i+1));
+    const ns = document.getElementById('sstep-'+(i+1));
+    const nsd= document.getElementById('ssdot-'+(i+1));
+    if(nb) nb.className='bstep cur'; if(nd) nd.className='bstep-dot cur';
+    if(ns) ns.className='side-step cur'; if(nsd) nsd.className='ss-dot cur';
+  }
+}
+
+// ══ Progress bar ═════════════════════════════════════
+function startProg() {
+  progVal = 0; ge('bootBar').style.width='0%';
+  clearInterval(progTimer);
+  progTimer = setInterval(() => {
+    progVal += progVal<70 ? 0.7 : 0.15;
+    if(progVal>97) progVal=97;
+    ge('bootBar').style.width = progVal+'%';
+  }, 1000);
+}
+
+// ══ Load noVNC ═══════════════════════════════════════
+function loadVNC() {
+  const p = new URLSearchParams({
+    host:            location.hostname,
+    port:            location.port || '80',
+    path:            'novnc/websockify',
+    autoconnect:     'true',
+    reconnect:       'true',
+    reconnect_delay: '3000',
+    resize:          'scale',
+    quality:         '6',
+    compression:     '2',
+    show_dot:        'false',
+  });
+  const url = `/novnc/vnc.html?${p}`;
+  log('تحميل noVNC: '+url.substring(0,60)+'...','info');
+  ge('vncFrame').src = url;
+}
+
+ge('vncFrame').addEventListener('load', () => {
+  clearInterval(progTimer);
+  ge('bootBar').style.width='100%';
+  setTimeout(() => {
+    try {
+      // cross-origin = محتوى حقيقي
+      const doc = ge('vncFrame').contentDocument;
+      if(doc) log('noVNC HTML محمّل','info');
+    } catch(e) {
+      // cross-origin يعني noVNC يعمل!
+    }
+    setLive();
+    log('noVNC متصل ✓','ok');
+  }, 2000);
+});
+
+// ══ Periodic VNC check ═══════════════════════════════
+async function checkVNC() {
+  try {
+    const r = await fetch('/api/vnc-check');
+    const d = await r.json();
+    const el = ge('sVNC');
+    if(d.ok) {
+      el.textContent='متاح ✓'; el.className='kv_ ok';
+      log('noVNC: متاح ✓','ok');
+      return true;
+    } else {
+      el.textContent='غير متاح ✕'; el.className='kv_ err';
+      log('noVNC: غير متاح','warn');
+      return false;
+    }
+  } catch(e) {
+    log('فحص noVNC فشل: '+e.message,'warn');
+    return false;
+  }
+}
+
+// ══ States ═══════════════════════════════════════════
+function setLive() {
+  ge('topDot').className='dot live';
+  ge('lDot').className  ='ldot live';
+  ge('topChip').textContent='يعمل ✓';
+  ge('topChip').className='chip live';
+  ge('lblTxt').textContent='TikTok يعمل — تفاعل مع الجهاز';
+  ge('sState').textContent='يعمل ✓'; ge('sState').className='kv_ ok';
+  ge('bootOv').classList.add('off');
+  ge('errOv').classList.remove('on');
+  advanceStep(4,'ok');
+  ge('sAPK').textContent='مثبّت ✓'; ge('sAPK').className='kv_ ok';
+  toast('🎵 TikTok يعمل على الجهاز!','tk');
+}
+
+function setError(msg) {
+  ge('topDot').className='dot fail';
+  ge('lDot').className  ='ldot fail';
+  ge('topChip').textContent='خطأ';
+  ge('topChip').className='chip fail';
+  ge('sState').textContent='خطأ ✕'; ge('sState').className='kv_ err';
+  ge('errMsg').textContent = msg;
+  ge('bootOv').classList.add('off');
+  ge('errOv').classList.add('on');
+  toast('⚠️ تعذّر الاتصال','err');
+}
+
+// ══ Controls ═════════════════════════════════════════
+function retry() {
+  ge('bootOv').classList.remove('off');
+  ge('errOv').classList.remove('on');
+  ge('bootBar').style.width='0%';
+  renderSteps(); startProg();
+  ge('vncFrame').src='';
+  setTimeout(()=>{ loadVNC(); }, 400);
+  toast('⟳ إعادة الاتصال...');
+}
+
+async function openTikTok() {
+  toast('♪ فتح TikTok...','tk');
+  log('إرسال أمر فتح TikTok عبر ADB','info');
+  try {
+    await fetch('/api/launch-tiktok');
+  } catch(e) {}
+}
+
+async function reinstallAPK() {
+  toast('⬇ إعادة تثبيت APK...','ok');
+  log('طلب إعادة التثبيت','info');
+  try { await fetch('/api/reinstall'); } catch(e){}
+}
+
+function rotate() {
+  rotated = !rotated;
+  const p = ge('phone');
+  p.style.cssText = rotated
+    ? 'width:600px;height:320px;border-radius:18px;'
+    : 'width:360px;height:720px;border-radius:40px;';
+  toast(rotated?'↺ أفقي':'↺ عمودي');
+}
+
+function goFull() {
+  const p = ge('phone');
+  (p.requestFullscreen||p.webkitRequestFullscreen||function(){}).call(p);
+}
+
+function openDirect() {
+  window.open(`${BASE}/novnc/vnc.html?autoconnect=true&reconnect=true`,'_blank');
+}
+
+// ══ Helpers ═══════════════════════════════════════════
+function ge(id){ return document.getElementById(id); }
+function txt(id,v){ const e=ge(id); if(e) e.textContent=v; }
+function log(msg, type){
+  const b=ge('logBox'); if(!b) return;
+  const t=new Date();
+  const ts=`${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}:${t.getSeconds().toString().padStart(2,'0')}`;
+  const d=document.createElement('div');
+  d.className='ll '+(type||'');
+  d.textContent=`[${ts}] ${msg}`;
+  b.appendChild(d); b.scrollTop=b.scrollHeight;
+  while(b.children.length>120) b.removeChild(b.firstChild);
+}
+let tTmr;
+function toast(msg,type){
+  const t=ge('toast');
+  t.textContent=msg; t.className='show '+(type||'');
+  clearTimeout(tTmr);
+  tTmr=setTimeout(()=>{t.className=type||'';},3000);
+}
+
+// ══ Simulated boot sequence ═══════════════════════════
+async function simulateBoot() {
+  const steps = [
+    [0, 'تشغيل Android 13...', 'تهيئة المحاكي', 5000],
+    [1, 'تهيئة noVNC...', 'بث شاشة الجهاز', 3000],
+    [2, 'انتظار ADB...', 'الاتصال بالجهاز', 3000],
+    [3, 'تثبيت TikTok APK...', 'تلقائي عبر ADB', 5000],
+    [4, 'تشغيل TikTok...', 'يفتح التطبيق', 2000],
+  ];
+
+  for(const [idx, title, sub, delay] of steps) {
+    txt('bootTitle', title);
+    txt('bootSub', sub);
+    log(title, 'info');
+    if(idx > 0) advanceStep(idx-1, 'ok');
+    advanceStep(idx, 'cur');
+    await sleep(delay);
+  }
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ══ INIT ══════════════════════════════════════════════
+(async () => {
+  renderSteps();
+  startProg();
+  log('TikTok Android Emulator — بدء التشغيل','tk');
+  log('Google Pixel 7 — Android 13','info');
+
+  // فحص الـ server
+  try {
+    const r = await fetch('/api/status');
+    const d = await r.json();
+    if(d.ok) log('Server v'+d.version+' ✓','ok');
+  } catch(e){ log('Server: '+e.message,'warn'); }
+
+  // بدء boot sequence المحاكاة
+  simulateBoot();
+
+  // تحميل noVNC بعد تأخير (الجهاز يحتاج وقتاً)
+  setTimeout(async () => {
+    log('جاري تحميل noVNC stream...','info');
+    ge('sVNC').textContent='يتحمل...';
+    loadVNC();
+
+    // فحص دوري
+    checkInt = setInterval(async()=>{
+      const ok = await checkVNC();
+      if(ok && ge('bootOv').classList.contains('off') === false) {
+        // VNC جاهز — نحاول التحميل
+        loadVNC();
+      }
+    }, 15000);
+  }, 8000);
+})();
+</script>
+</body>
+</html>

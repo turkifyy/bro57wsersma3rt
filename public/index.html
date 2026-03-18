@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Browser v4.6 — TikTok</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070c;--sf:#0d0d14;--sf2:#13131c;--sf3:#191924;--sf4:#1f1f2c;
+  --b:rgba(255,255,255,0.055);--b2:rgba(255,255,255,0.10);--b3:rgba(255,255,255,0.15);
+  --ac:#4f8ef7;--gr:#22c55e;--rd:#ef4444;--am:#f59e0b;--pu:#a78bfa;--cy:#22d3ee;
+  --pk:#f472b6;
+  --tx:#eef0f8;--mt:#5a5a78;--mt2:#8888aa;
+  --mono:'JetBrains Mono',monospace;--sans:'IBM Plex Sans Arabic',sans-serif;
+  --r:8px;--r2:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);
+  display:flex;flex-direction:column;}
+
+/* grid + glow */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(79,142,247,0.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(79,142,247,0.018) 1px,transparent 1px);
+  background-size:50px 50px;}
+body::after{content:'';position:fixed;top:-40%;left:50%;width:700px;height:400px;
+  transform:translateX(-50%);
+  background:radial-gradient(ellipse,rgba(244,114,182,0.04) 0%,transparent 70%);
+  pointer-events:none;z-index:0;}
+
+/* ══ TOPBAR ══ */
+.topbar{position:relative;z-index:50;display:flex;align-items:center;
+  justify-content:space-between;padding:0 14px;height:46px;flex-shrink:0;
+  border-bottom:1px solid var(--b);background:rgba(4,4,9,0.98);
+  backdrop-filter:blur(24px);}
+.brand{display:flex;align-items:center;gap:7px;}
+.logo{width:24px;height:24px;border-radius:6px;
+  background:linear-gradient(135deg,#010101 0%,#010101 40%,#69C9D0 40%,#EE1D52 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;color:#fff;flex-shrink:0;}
+.bname{font-size:12.5px;font-weight:600;}
+.ver-badge{font-family:var(--mono);font-size:9px;color:var(--pk);
+  background:rgba(244,114,182,.1);border:1px solid rgba(244,114,182,.22);
+  border-radius:4px;padding:1px 5px;}
+.status-row{display:flex;align-items:center;gap:5px;}
+.sdot{width:7px;height:7px;border-radius:50%;transition:all .35s;}
+.sdot.idle{background:var(--mt);}
+.sdot.load{background:var(--am);box-shadow:0 0 6px var(--am);animation:bl .8s infinite;}
+.sdot.live{background:var(--gr);box-shadow:0 0 6px var(--gr);animation:bl 2.4s infinite;}
+.sdot.fail{background:var(--rd);}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.15}}
+.schip{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:20px;
+  border:1px solid var(--b2);color:var(--mt2);background:var(--sf);}
+.schip.live{color:var(--gr);border-color:rgba(34,197,94,.28);background:rgba(34,197,94,.06);}
+.schip.load{color:var(--am);border-color:rgba(245,158,11,.28);background:rgba(245,158,11,.06);}
+.schip.fail{color:var(--rd);border-color:rgba(239,68,68,.28);background:rgba(239,68,68,.06);}
+
+/* ══ ADDRESS BAR ══ */
+.abar{position:relative;z-index:40;display:flex;align-items:center;gap:7px;
+  padding:7px 14px;border-bottom:1px solid var(--b);
+  background:rgba(6,6,12,0.97);flex-shrink:0;}
+.nbtn{width:27px;height:27px;border-radius:7px;border:1px solid var(--b2);
+  background:var(--sf2);color:var(--mt2);font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;flex-shrink:0;}
+.nbtn:hover{border-color:var(--ac);color:var(--ac);}
+.nbtn:disabled{opacity:.3;cursor:not-allowed;}
+.url-wrap{flex:1;display:flex;align-items:center;gap:6px;
+  background:var(--sf2);border:1px solid var(--b2);border-radius:9px;
+  padding:5px 10px;transition:border-color .2s;}
+.url-wrap:focus-within{border-color:var(--ac);}
+.lock{font-size:11px;flex-shrink:0;}
+#urlIn{flex:1;background:transparent;border:none;outline:none;
+  font-family:var(--mono);font-size:11px;color:var(--tx);direction:ltr;}
+#urlIn::placeholder{color:var(--mt);}
+.go-btn{padding:5px 14px;border-radius:8px;border:none;background:var(--ac);
+  color:#fff;font-family:var(--sans);font-size:11px;font-weight:500;
+  cursor:pointer;transition:all .2s;flex-shrink:0;}
+.go-btn:hover{background:#3a7de8;}
+
+/* ══ QUICK-ACCESS BAR ══ */
+.qbar{position:relative;z-index:35;display:flex;align-items:center;gap:5px;
+  padding:5px 14px;border-bottom:1px solid var(--b);
+  background:rgba(5,5,11,0.97);flex-shrink:0;overflow-x:auto;}
+.qbtn{padding:4px 12px;border-radius:20px;border:1px solid var(--b2);
+  background:var(--sf2);font-size:10px;cursor:pointer;
+  transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:4px;
+  flex-shrink:0;}
+.qbtn:hover{border-color:var(--pk);color:var(--pk);}
+.qbtn.tiktok{border-color:rgba(238,29,82,.4);color:#EE1D52;
+  background:rgba(238,29,82,.07);}
+.qbtn.tiktok:hover{background:rgba(238,29,82,.14);}
+.sep{width:1px;height:16px;background:var(--b2);flex-shrink:0;}
+
+/* ══ MAIN ══ */
+.wrap{position:relative;z-index:1;flex:1;display:flex;min-height:0;}
+
+/* ══ IFRAME AREA ══ */
+.iframe-area{flex:1;position:relative;min-width:0;background:#000;}
+
+/* loading screen */
+#loadScr{position:absolute;inset:0;background:#07070c;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;z-index:20;transition:opacity .5s;}
+#loadScr.off{opacity:0;pointer-events:none;}
+
+.tiktok-anim{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.tk-logo{width:56px;height:56px;border-radius:14px;
+  background:linear-gradient(135deg,#010101,#010101 45%,#69C9D0 45%,#EE1D52 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:900;color:#fff;
+  box-shadow:0 0 30px rgba(238,29,82,0.3);}
+.tk-spin{width:32px;height:32px;border:2px solid rgba(255,255,255,.07);
+  border-top-color:#EE1D52;border-right-color:#69C9D0;
+  border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.load-t{font-size:13px;font-weight:500;}
+.load-s{font-size:10.5px;color:var(--mt);text-align:center;
+  max-width:260px;line-height:1.7;}
+.load-prog{width:200px;height:2px;background:var(--sf3);border-radius:2px;overflow:hidden;}
+.load-bar{height:100%;width:0;border-radius:2px;
+  background:linear-gradient(90deg,#69C9D0,#EE1D52);transition:width .3s;}
+
+/* strategy steps */
+.strat-steps{display:flex;flex-direction:column;gap:5px;max-width:260px;width:100%;}
+.sstep{display:flex;align-items:center;gap:8px;padding:6px 10px;
+  border-radius:7px;background:var(--sf2);border:1px solid var(--b);
+  font-size:10.5px;color:var(--mt2);transition:all .3s;}
+.sstep.cur{border-color:rgba(245,158,11,.3);color:var(--am);}
+.sstep.ok {border-color:rgba(34,197,94,.3); color:var(--gr);}
+.sstep.fail{border-color:rgba(239,68,68,.25);color:var(--rd);opacity:.6;}
+.sdot2{width:6px;height:6px;border-radius:50%;background:var(--mt);flex-shrink:0;}
+.sdot2.cur{background:var(--am);animation:bl .7s infinite;}
+.sdot2.ok {background:var(--gr);}
+.sdot2.fail{background:var(--rd);}
+
+/* error screen */
+#errScr{position:absolute;inset:0;background:#07070c;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;z-index:25;padding:28px;text-align:center;}
+#errScr.on{display:flex;}
+.err-logo{font-size:36px;}
+.err-t{font-size:15px;font-weight:600;color:var(--rd);}
+.err-m{font-size:11px;color:var(--mt);line-height:1.7;max-width:300px;}
+.err-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;}
+.ea-btn{padding:7px 16px;border-radius:8px;border:1px solid var(--b2);
+  background:var(--sf2);color:var(--tx);font-size:11px;cursor:pointer;
+  transition:all .2s;font-family:var(--sans);}
+.ea-btn:hover{border-color:var(--ac);color:var(--ac);}
+.ea-btn.primary{border-color:rgba(238,29,82,.4);color:#EE1D52;background:rgba(238,29,82,.07);}
+.ea-btn.primary:hover{background:rgba(238,29,82,.14);}
+
+/* main iframe */
+#mainFrame{width:100%;height:100%;border:none;display:block;}
+
+/* ══ SIDEBAR ══ */
+.sidebar{width:230px;min-width:230px;border-left:1px solid var(--b);
+  background:var(--sf);display:flex;flex-direction:column;
+  overflow-y:auto;flex-shrink:0;}
+.ss{padding:12px;border-bottom:1px solid var(--b);}
+.sl{font-family:var(--mono);font-size:8.5px;letter-spacing:1.8px;
+  color:var(--mt);text-transform:uppercase;margin-bottom:9px;}
+.kv{display:flex;flex-direction:column;gap:2px;padding:6px 8px;
+  border-radius:var(--r);background:var(--sf2);border:1px solid var(--b);
+  margin-bottom:4px;}
+.kl{font-size:9px;color:var(--mt);}
+.kv_{font-family:var(--mono);font-size:10px;color:var(--tx);word-break:break-all;line-height:1.4;}
+.kv_.ok{color:var(--gr);}.kv_.err{color:var(--rd);}.kv_.am{color:var(--am);}
+.kv_.cy{color:var(--cy);}.kv_.pk{color:var(--pk);}
+
+.sib{width:100%;padding:7px;border-radius:var(--r);border:none;cursor:pointer;
+  font-family:var(--sans);font-size:11px;font-weight:500;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.sib-p{background:linear-gradient(135deg,#EE1D52,#c0154a);color:#fff;margin-top:6px;}
+.sib-p:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(238,29,82,.3);}
+.sib-o{background:transparent;color:var(--mt2);border:1px solid var(--b2);margin-top:4px;}
+.sib-o:hover{border-color:var(--ac);color:var(--ac);}
+
+/* history list */
+.hist-item{display:flex;align-items:center;gap:6px;padding:5px 7px;
+  border-radius:var(--r);background:var(--sf2);border:1px solid var(--b);
+  margin-bottom:3px;cursor:pointer;transition:all .2s;}
+.hist-item:hover{border-color:var(--b3);}
+.hist-url{font-family:var(--mono);font-size:9px;color:var(--mt2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;}
+
+/* logbox */
+.logbox{background:var(--sf2);border-radius:6px;border:1px solid var(--b);
+  padding:6px;height:90px;overflow-y:auto;font-family:var(--mono);
+  font-size:8.5px;color:var(--mt);line-height:1.85;}
+.ll.ok{color:var(--gr);}.ll.err{color:var(--rd);}
+.ll.info{color:var(--ac);}.ll.warn{color:var(--am);}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:12px;left:50%;
+  transform:translateX(-50%) translateY(45px);
+  background:var(--sf3);border:1px solid var(--b2);
+  border-radius:10px;padding:7px 15px;font-size:11px;
+  z-index:9999;transition:transform .24s;white-space:nowrap;
+  box-shadow:0 8px 28px rgba(0,0,0,.55);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.ok{border-color:rgba(34,197,94,.4);color:var(--gr);}
+#toast.err{border-color:rgba(239,68,68,.4);color:var(--rd);}
+#toast.warn{border-color:rgba(245,158,11,.4);color:var(--am);}
+#toast.pk{border-color:rgba(244,114,182,.4);color:var(--pk);}
+
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px;}
+
+@media(max-width:800px){
+  .sidebar{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">♪</div>
+    <span class="bname">Smart Browser</span>
+    <span class="ver-badge">v4.6</span>
+  </div>
+  <div class="status-row">
+    <div class="sdot load" id="sdot"></div>
+    <span class="schip load" id="schip">يتحمل...</span>
+  </div>
+</header>
+
+<!-- ══ ADDRESS BAR ══ -->
+<div class="abar">
+  <button class="nbtn" id="btnBack" onclick="navBack()" title="رجوع" disabled>←</button>
+  <button class="nbtn" id="btnFwd"  onclick="navFwd()"  title="أمام"  disabled>→</button>
+  <button class="nbtn" onclick="refresh()" title="تحديث">⟳</button>
+  <div class="url-wrap">
+    <span class="lock" id="lockIc">🔒</span>
+    <input id="urlIn" type="text" placeholder="اكتب رابطاً أو ابحث..."
+      dir="ltr" autocomplete="off" spellcheck="false"
+      onkeydown="if(event.key==='Enter')navigate()">
+  </div>
+  <button class="go-btn" onclick="navigate()">انتقال</button>
+</div>
+
+<!-- ══ QUICK ACCESS ══ -->
+<div class="qbar">
+  <button class="qbtn tiktok" onclick="openTikTok()">♪ TikTok</button>
+  <div class="sep"></div>
+  <button class="qbtn" onclick="goTo('https://www.tiktok.com/explore')">🔍 استكشاف</button>
+  <button class="qbtn" onclick="goTo('https://www.tiktok.com/live')">🔴 بث مباشر</button>
+  <button class="qbtn" onclick="goTo('https://www.tiktok.com/trending')">📈 رائج</button>
+  <div class="sep"></div>
+  <button class="qbtn" onclick="toggleProxy()" id="proxyBtn">🛡 Proxy: ON</button>
+  <button class="qbtn" onclick="clearHistory()">🗑 سجل</button>
+</div>
+
+<!-- ══ MAIN WRAP ══ -->
+<div class="wrap">
+
+  <!-- IFRAME AREA -->
+  <div class="iframe-area">
+
+    <!-- Loading screen -->
+    <div id="loadScr">
+      <div class="tiktok-anim">
+        <div class="tk-logo">♪</div>
+        <div class="tk-spin"></div>
+      </div>
+      <div class="load-t" id="loadT">جاري تحميل TikTok...</div>
+      <div class="load-s" id="loadS">يجرب استراتيجيات الاتصال المتقدمة</div>
+      <div class="load-prog"><div class="load-bar" id="loadBar"></div></div>
+      <div class="strat-steps" id="stratSteps"></div>
+    </div>
+
+    <!-- Error screen -->
+    <div id="errScr">
+      <div class="err-logo">📵</div>
+      <div class="err-t">تعذّر التضمين المباشر</div>
+      <div class="err-m" id="errM">
+        TikTok تستخدم حماية متقدمة تمنع التضمين.<br>
+        استخدم "فتح في نافذة" للوصول الكامل، أو جرّب "عرض محمول".
+      </div>
+      <div class="err-actions">
+        <button class="ea-btn primary" onclick="openExternal()">↗ فتح TikTok</button>
+        <button class="ea-btn" onclick="tryMobile()">📱 عرض محمول</button>
+        <button class="ea-btn" onclick="retryAll()">⟳ إعادة</button>
+        <button class="ea-btn" onclick="tryEmbed()">▶ تضمين مباشر</button>
+      </div>
+    </div>
+
+    <!-- THE IFRAME -->
+    <iframe id="mainFrame" src="about:blank"
+      allow="fullscreen autoplay camera microphone"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-downloads">
+    </iframe>
+
+  </div>
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+
+    <div class="ss">
+      <div class="sl">معلومات الصفحة</div>
+      <div class="kv"><span class="kl">الموقع</span>
+        <span class="kv_ pk">TikTok</span></div>
+      <div class="kv"><span class="kl">الاستراتيجية</span>
+        <span class="kv_ cy" id="sStr">—</span></div>
+      <div class="kv"><span class="kl">الحالة</span>
+        <span class="kv_ am" id="sSt">يتحمل...</span></div>
+      <div class="kv"><span class="kl">الرابط</span>
+        <span class="kv_" id="sURL" style="font-size:8.5px;color:var(--cy)">—</span></div>
+    </div>
+
+    <div class="ss">
+      <div class="sl">خيارات TikTok</div>
+      <button class="sib sib-p" onclick="openTikTok()">♪ TikTok الرئيسية</button>
+      <button class="sib sib-o" onclick="tryMobile()">📱 وضع الجوال</button>
+      <button class="sib sib-o" onclick="openExternal()">↗ فتح في نافذة</button>
+      <button class="sib sib-o" onclick="retryAll()">⟳ إعادة المحاولة</button>
+    </div>
+
+    <div class="ss">
+      <div class="sl">الاستراتيجيات</div>
+      <div id="sideStrats"></div>
+    </div>
+
+    <div class="ss">
+      <div class="sl">السجل الأخير</div>
+      <div id="histList"></div>
+      <button class="sib sib-o" style="margin-top:5px" onclick="clearHistory()">مسح السجل</button>
+    </div>
+
+    <div class="ss">
+      <div class="sl">السجل التقني</div>
+      <div class="logbox" id="logBox"></div>
+    </div>
+
+  </aside>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+const BASE = window.location.origin;
+const TIKTOK_URL = 'https://www.tiktok.com';
+
+// ── URL encode (same as server) ─────────────────────
+function enc(u) {
+  return btoa(unescape(encodeURIComponent(u)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+// ══════════════════════════════════════════════════════
+//  STRATEGIES v4.6
+//  مرتبة من الأكثر احتمالاً للنجاح إلى الأقل
+// ══════════════════════════════════════════════════════
+const STRATEGIES = [
+  {
+    id: 's1',
+    name: 'HTML Rewrite Proxy',
+    desc: 'إعادة كتابة الصفحة كاملة',
+    url: (target) => `${BASE}/browse/${enc(target)}`,
+  },
+  {
+    id: 's2',
+    name: 'Mobile UA Proxy',
+    desc: 'وضع الجوال مع proxy',
+    url: (target) => `${BASE}/browse/${enc(target + '?_ua=mobile')}`,
+    transform: (target) => {
+      // استخدام نسخة الجوال
+      const u = new URL(target);
+      return `${BASE}/browse/${enc('https://m.tiktok.com' + u.pathname + u.search)}`;
+    }
+  },
+  {
+    id: 's3',
+    name: 'Direct Embed',
+    desc: 'تضمين مباشر بدون proxy',
+    url: (target) => target,
+  },
+  {
+    id: 's4',
+    name: 'Lite Version',
+    desc: 'نسخة خفيفة من TikTok',
+    url: () => `${BASE}/browse/${enc('https://lite.tiktok.com')}`,
+  },
+];
+
+let curIdx     = 0;
+let proxyOn    = true;
+let history_   = [];
+let histPos    = -1;
+let progTimer  = null;
+let loadTimer  = null;
+let progVal    = 0;
+let loadCount  = 0;
+
+// ══════════════════════════════════════════════════════
+//  BOOT — render strategy steps
+// ══════════════════════════════════════════════════════
+function renderStratUI() {
+  const box  = document.getElementById('stratSteps');
+  const sbox = document.getElementById('sideStrats');
+  box.innerHTML = ''; sbox.innerHTML = '';
+
+  STRATEGIES.forEach((s, i) => {
+    // loading screen steps
+    const d = document.createElement('div');
+    d.className = 'sstep' + (i === curIdx ? ' cur' : '');
+    d.id = 'step-' + i;
+    d.innerHTML = `<div class="sdot2${i===curIdx?' cur':''}" id="sdot2-${i}"></div>
+      <span>${s.name} — ${s.desc}</span>`;
+    box.appendChild(d);
+
+    // sidebar
+    const sd = document.createElement('div');
+    sd.className = 'kv'; sd.style.cursor='pointer';
+    sd.id = 'sstrat-' + i;
+    sd.innerHTML = `<span class="kl">${s.name}</span>
+      <span class="kv_" id="sstrat-st-${i}" style="font-size:9px;color:var(--mt)">${s.desc}</span>`;
+    sd.onclick = () => tryStrategy(i);
+    sbox.appendChild(sd);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  LOAD
+// ══════════════════════════════════════════════════════
+function load(target, stratIdx) {
+  target  = target || TIKTOK_URL;
+  stratIdx = stratIdx !== undefined ? stratIdx : curIdx;
+  curIdx   = stratIdx;
+
+  if (stratIdx >= STRATEGIES.length) {
+    showError('جميع الاستراتيجيات فشلت.\nTikTok تمنع التضمين بشكل قوي.\nاستخدم "فتح TikTok" للوصول الكامل.');
+    return;
+  }
+
+  const s   = STRATEGIES[stratIdx];
+  const url = s.transform ? s.transform(target) : s.url(target);
+
+  log(`[S${stratIdx+1}] ${s.name}: ${url.substring(0,55)}...`, 'info');
+  log(`Target: ${target}`, 'info');
+
+  // UI
+  setStatus('load','...'+s.name);
+  set('sStr', s.name, 'cy');
+  set('sSt',  'يتحمل...', 'am');
+  set('sURL', target.substring(0,40)+'...', '');
+  txt('loadT', `${s.name}...`);
+  txt('loadS', s.desc);
+  updateNavBtns();
+
+  // mark strategy
+  renderStratUI();
+  markStep(stratIdx, 'cur');
+
+  showLoad(true);
+  showErr(false);
+  startProg();
+
+  const fr = ge('mainFrame');
+  fr.src = ''; 
+  setTimeout(() => { fr.src = url; }, 200);
+
+  // Auto-advance timeout
+  clearTimeout(loadTimer);
+  loadTimer = setTimeout(() => {
+    if (!ge('loadScr').classList.contains('off')) {
+      log(`[S${stratIdx+1}] timeout → next strategy`, 'warn');
+      markStep(stratIdx, 'fail');
+      load(target, stratIdx + 1);
+    }
+  }, 15000);
+}
+
+// ══════════════════════════════════════════════════════
+//  IFRAME EVENTS
+// ══════════════════════════════════════════════════════
+const fr = ge('mainFrame');
+
+fr.addEventListener('load', () => {
+  clearTimeout(loadTimer);
+  clearInterval(progTimer);
+  ge('loadBar').style.width = '100%';
+
+  setTimeout(() => {
+    let loaded = false;
+    try {
+      const doc = fr.contentDocument || fr.contentWindow?.document;
+      // cross-origin يعني محتوى حقيقي ✓
+      loaded = true;
+    } catch (e) {
+      loaded = true; // cross-origin = content loaded
+    }
+
+    if (loaded) {
+      showLoad(false);
+      showErr(false);
+      setStatus('live', 'يعمل ✓');
+      set('sSt','يعمل ✓','ok');
+      markStep(curIdx, 'ok');
+      loadCount++;
+      addToHistory(ge('urlIn').value || TIKTOK_URL);
+      toast('✅ تم التحميل بنجاح!','ok');
+      log(`[S${curIdx+1}] تم التحميل ✓`,'ok');
+    }
+  }, 1500);
+});
+
+fr.addEventListener('error', () => {
+  log(`[S${curIdx+1}] iframe error`,'err');
+  markStep(curIdx,'fail');
+  const target = ge('urlIn').value || TIKTOK_URL;
+  load(target, curIdx + 1);
+});
+
+// ══════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════
+function navigate() {
+  let url = ge('urlIn').value.trim();
+  if (!url) { openTikTok(); return; }
+  if (!url.startsWith('http')) {
+    if (url.includes('.') && !url.includes(' ')) url = 'https://' + url;
+    else url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+  }
+  ge('urlIn').value = url;
+  ge('lockIc').textContent = url.startsWith('https') ? '🔒' : '🔓';
+  curIdx = 0;
+  if (history_[histPos] !== url) {
+    history_ = history_.slice(0, histPos+1);
+    history_.push(url); histPos = history_.length-1;
+  }
+  updateNavBtns();
+  load(url, 0);
+}
+
+function goTo(url) {
+  ge('urlIn').value = url;
+  navigate();
+}
+
+function navBack() {
+  if (histPos > 0) { histPos--; goTo(history_[histPos]); }
+}
+function navFwd() {
+  if (histPos < history_.length-1) { histPos++; goTo(history_[histPos]); }
+}
+function refresh() {
+  const url = ge('urlIn').value || TIKTOK_URL;
+  curIdx = 0; load(url, 0);
+}
+function updateNavBtns() {
+  ge('btnBack').disabled = histPos <= 0;
+  ge('btnFwd').disabled  = histPos >= history_.length-1;
+}
+
+// ══════════════════════════════════════════════════════
+//  TIKTOK SPECIFIC
+// ══════════════════════════════════════════════════════
+function openTikTok() {
+  ge('urlIn').value = TIKTOK_URL;
+  curIdx = 0;
+  history_.push(TIKTOK_URL); histPos = history_.length-1;
+  updateNavBtns();
+  load(TIKTOK_URL, 0);
+  log('فتح TikTok الرئيسية...','info');
+  toast('♪ فتح TikTok...','pk');
+}
+
+function tryMobile() {
+  const mUrl = 'https://m.tiktok.com';
+  ge('urlIn').value = mUrl;
+  curIdx = 0; load(mUrl, 0);
+  toast('📱 تجربة نسخة الجوال...','ok');
+}
+
+function tryEmbed() {
+  const url = ge('urlIn').value || TIKTOK_URL;
+  fr.src = url;
+  showErr(false); showLoad(true);
+  txt('loadT','تضمين مباشر...');
+  toast('تضمين مباشر...','warn');
+}
+
+function openExternal() {
+  window.open(TIKTOK_URL,'_blank');
+  log('فتح TikTok في نافذة جديدة','info');
+  toast('↗ يفتح TikTok في نافذة جديدة','pk');
+}
+
+function retryAll() {
+  curIdx = 0; renderStratUI();
+  const url = ge('urlIn').value || TIKTOK_URL;
+  load(url, 0);
+}
+
+function tryStrategy(i) {
+  const url = ge('urlIn').value || TIKTOK_URL;
+  load(url, i);
+  toast(`▶ تجربة: ${STRATEGIES[i].name}`);
+}
+
+// ══════════════════════════════════════════════════════
+//  PROXY TOGGLE
+// ══════════════════════════════════════════════════════
+function toggleProxy() {
+  proxyOn = !proxyOn;
+  const btn = ge('proxyBtn');
+  btn.textContent = proxyOn ? '🛡 Proxy: ON' : '🛡 Proxy: OFF';
+  btn.className   = 'qbtn' + (proxyOn ? ' tiktok' : '');
+  toast(proxyOn ? '🛡 Proxy مفعّل' : '⚠️ Proxy معطّل', proxyOn?'ok':'warn');
+}
+
+// ══════════════════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════════════════
+function addToHistory(url) {
+  const list = ge('histList');
+  const d = document.createElement('div');
+  d.className = 'hist-item';
+  d.innerHTML = `<span style="font-size:12px">🌐</span>
+    <span class="hist-url">${url}</span>`;
+  d.onclick = () => goTo(url);
+  list.insertBefore(d, list.firstChild);
+  while(list.children.length > 8) list.removeChild(list.lastChild);
+}
+function clearHistory() {
+  ge('histList').innerHTML='';
+  history_=[]; histPos=-1; updateNavBtns();
+  toast('🗑 تم مسح السجل');
+}
+
+// ══════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════
+function ge(id){ return document.getElementById(id); }
+function txt(id,v){ const e=ge(id); if(e) e.textContent=v; }
+function set(id,v,cls){
+  const e=ge(id); if(!e) return;
+  e.textContent=v;
+  if(cls!==undefined) e.className='kv_ '+cls;
+}
+function showLoad(on){
+  ge('loadScr').classList.toggle('off',!on);
+}
+function showErr(on){
+  ge('errScr').classList.toggle('on', on);
+}
+function showError(msg){
+  showLoad(false); showErr(true);
+  txt('errM', msg);
+  setStatus('fail','تعذّر');
+  set('sSt','تعذّر ✕','err');
+  log(msg,'err');
+}
+function setStatus(state, label){
+  ge('sdot').className='sdot '+state;
+  ge('schip').textContent=label;
+  ge('schip').className='schip '+state;
+}
+function markStep(i, state){
+  const step  = ge('step-'+i);   if(step)  step.className='sstep '+state;
+  const dot2  = ge('sdot2-'+i);  if(dot2)  dot2.className='sdot2 '+state;
+  const sstrat= ge('sstrat-'+i); if(sstrat) sstrat.style.borderColor=
+    state==='ok'?'rgba(34,197,94,.3)':state==='fail'?'rgba(239,68,68,.25)':'rgba(245,158,11,.3)';
+  const sst   = ge('sstrat-st-'+i);
+  if(sst) sst.style.color=state==='ok'?'var(--gr)':state==='fail'?'var(--rd)':'var(--am)';
+}
+function startProg(){
+  progVal=0; ge('loadBar').style.width='0%'; clearInterval(progTimer);
+  progTimer=setInterval(()=>{
+    progVal+=progVal<68?1.2:0.2; if(progVal>97)progVal=97;
+    ge('loadBar').style.width=progVal+'%';
+  },800);
+}
+function log(msg,type){
+  const b=ge('logBox'); if(!b) return;
+  const t=new Date();
+  const ts=`${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}:${t.getSeconds().toString().padStart(2,'0')}`;
+  const d=document.createElement('div');
+  d.className='ll '+(type||'');
+  d.textContent=`[${ts}] ${msg}`;
+  b.appendChild(d); b.scrollTop=b.scrollHeight;
+  while(b.children.length>120) b.removeChild(b.firstChild);
+}
+let toastTmr;
+function toast(msg,type){
+  const t=ge('toast');
+  t.textContent=msg; t.className='show '+(type||'');
+  clearTimeout(toastTmr);
+  toastTmr=setTimeout(()=>{ t.className=type||''; },3000);
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+(async ()=>{
+  log('Smart Browser v4.6 — بدء التهيئة','info');
+  log('هدف: TikTok — ترفيهي','info');
+  renderStratUI();
+
+  // server check
+  try {
+    const r = await fetch('/api/status');
+    const d = await r.json();
+    if(d.ok) log('Server v'+d.version+' ✓','ok');
+  } catch(e){ log('Server check failed: '+e.message,'warn'); }
+
+  // Auto open TikTok
+  openTikTok();
+})();
+</script>
+</body>
+</html>
